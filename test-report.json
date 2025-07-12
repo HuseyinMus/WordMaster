@@ -1,0 +1,230 @@
+{
+  "total": 37,
+  "passed": 30,
+  "failed": 5,
+  "warnings": 2,
+  "details": [
+    {
+      "name": "Dependency: react-native-google-mobile-ads",
+      "status": "success",
+      "message": "Versiyon: ^15.4.0",
+      "details": null
+    },
+    {
+      "name": "Dependency: @react-native-firebase/app",
+      "status": "error",
+      "message": "Eksik",
+      "details": null
+    },
+    {
+      "name": "Dependency: @react-native-firebase/firestore",
+      "status": "error",
+      "message": "Eksik",
+      "details": null
+    },
+    {
+      "name": "Dependency: @react-native-firebase/auth",
+      "status": "error",
+      "message": "Eksik",
+      "details": null
+    },
+    {
+      "name": "Dependency: expo-linear-gradient",
+      "status": "success",
+      "message": "Versiyon: ^14.1.5",
+      "details": null
+    },
+    {
+      "name": "Start Script",
+      "status": "success",
+      "message": "Mevcut",
+      "details": null
+    },
+    {
+      "name": "Firebase Config",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Firebase Initialize",
+      "status": "success",
+      "message": "initializeApp kullanılıyor",
+      "details": null
+    },
+    {
+      "name": "Firestore Config",
+      "status": "success",
+      "message": "getFirestore kullanılıyor",
+      "details": null
+    },
+    {
+      "name": "Auth Config",
+      "status": "success",
+      "message": "getAuth kullanılıyor",
+      "details": null
+    },
+    {
+      "name": "AdMob Config",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "AdMob Import",
+      "status": "error",
+      "message": "mobileAds import edilmemiş",
+      "details": null
+    },
+    {
+      "name": "Test IDs",
+      "status": "success",
+      "message": "Test reklam ID'leri mevcut",
+      "details": null
+    },
+    {
+      "name": "Production IDs",
+      "status": "success",
+      "message": "Production reklam ID'leri mevcut",
+      "details": null
+    },
+    {
+      "name": "Service: firebaseService.ts",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Service: adService.ts",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Service: quizService.ts",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Service: spacedRepetition.ts",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Component: BannerAdComponent.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Component: RewardedAdComponent.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Component: AdTestComponent.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Component: TestReportComponent.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Screen: HomeScreen.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Screen: LearningScreen.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Screen: QuizScreen.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Screen: ProfileScreen.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Screen: WordListScreen.tsx",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "TypeScript Config",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "Compiler Options",
+      "status": "success",
+      "message": "TypeScript compiler options mevcut",
+      "details": null
+    },
+    {
+      "name": "Include Paths",
+      "status": "warning",
+      "message": "Include paths eksik",
+      "details": null
+    },
+    {
+      "name": "Expo Config",
+      "status": "success",
+      "message": "Dosya mevcut",
+      "details": null
+    },
+    {
+      "name": "App Name",
+      "status": "success",
+      "message": "Uygulama adı: WordMaster",
+      "details": null
+    },
+    {
+      "name": "AdMob Plugin",
+      "status": "warning",
+      "message": "AdMob plugin tanımlanmamış",
+      "details": null
+    },
+    {
+      "name": "Node Modules",
+      "status": "success",
+      "message": "node_modules klasörü mevcut",
+      "details": null
+    },
+    {
+      "name": "Package: react-native-google-mobile-ads",
+      "status": "success",
+      "message": "Yüklü",
+      "details": null
+    },
+    {
+      "name": "Package: @react-native-firebase",
+      "status": "error",
+      "message": "Yüklü değil",
+      "details": null
+    },
+    {
+      "name": "Package: expo",
+      "status": "success",
+      "message": "Yüklü",
+      "details": null
+    }
+  ]
+}

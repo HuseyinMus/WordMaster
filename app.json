@@ -20,10 +20,31 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.wordmaster.app",
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "scheme": "wordmaster",
+    "plugins": [
+      "expo-web-browser",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-6780266285395945~3908678547",
+          "iosAppId": "ca-app-pub-6780266285395945~3908678547"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "3eb7fc35-0fc0-4956-be71-409aa6934a3e"
+      }
     }
   }
 }

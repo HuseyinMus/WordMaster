@@ -1,0 +1,45 @@
+// Firebase Firestore Güvenlik Kuralları
+// Bu kuralları Firebase Console > Firestore Database > Rules bölümüne kopyalayın
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Kullanıcılar koleksiyonu
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Kelimeler koleksiyonu
+    match /words/{wordId} {
+      allow read, write: if request.auth != null
+        && (
+          (resource.data.userId == request.auth.uid) || // mevcut doküman
+          (request.resource.data.userId == request.auth.uid) // yeni/updated doküman
+        );
+    }
+
+    // Günlük istatistikler koleksiyonu
+    match /dailyStats/{statId} {
+      allow read, write: if request.auth != null
+        && (
+          (resource.data.userId == request.auth.uid) ||
+          (request.resource.data.userId == request.auth.uid)
+        );
+    }
+
+    // Rozetler koleksiyonu
+    match /badges/{badgeId} {
+      allow read, write: if request.auth != null
+        && (
+          (resource.data.userId == request.auth.uid) ||
+          (request.resource.data.userId == request.auth.uid)
+        );
+    }
+
+    // Diğer tüm koleksiyonlar için erişimi kapat
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

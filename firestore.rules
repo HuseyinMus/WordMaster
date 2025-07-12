@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Kullanıcılar sadece kendi verilerine erişebilir
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Kelimeler - kullanıcılar sadece kendi kelimelerine erişebilir
+    match /words/{wordId} {
+      allow read, write: if request.auth != null && (
+        resource == null || resource.data.userId == request.auth.uid
+      );
+    }
+    
+    // Günlük istatistikler - kullanıcılar sadece kendi istatistiklerine erişebilir
+    match /dailyStats/{statsId} {
+      allow read, write: if request.auth != null && (
+        statsId.matches(request.auth.uid + '.*') || 
+        resource == null
+      );
+    }
+    
+    // Rozetler - kullanıcılar sadece kendi rozetlerine erişebilir
+    match /badges/{badgeId} {
+      allow read, write: if request.auth != null && (
+        resource == null || resource.data.userId == request.auth.uid
+      );
+    }
+    
+    // Genel kelime veritabanı - herkes okuyabilir ama sadece admin yazabilir
+    match /wordDatabase/{wordId} {
+      allow read: if true;
+      allow write: if false; // Sadece admin panelinden eklenebilir
+    }
+  }
+} 
