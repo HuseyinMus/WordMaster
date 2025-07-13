@@ -42,9 +42,14 @@ const QuizScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, []);
 
   const loadQuiz = async () => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      console.warn('QuizScreen: user veya user.uid yok');
+      setLoading(false);
+      return;
+    }
 
     try {
+      console.log('QuizScreen: Loading quiz for user:', user.uid);
       const userWords = await FirebaseService.getUserWords(user.uid);
       const learningWords = userWords.filter(word => 
         word.learningStatus === 'learning' || 
@@ -114,7 +119,7 @@ const QuizScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
     // Kelimeyi güncelle
     const word = words.find(w => w.id === currentQuestion.wordId);
-    if (word) {
+    if (word && user?.uid) {
       try {
         await DailyGoalService.onWordReviewed(user.uid, isCorrect, isCorrect ? 10 : 0);
       } catch (error) {

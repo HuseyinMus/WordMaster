@@ -56,7 +56,7 @@ export class SpacedRepetitionService {
 
     // E-factor hesaplama
     newEfactor = currentEfactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
-    newEfactor = Math.max(this.MIN_EFACTOR, newEfactor);
+    newEfactor = Math.max(this.MIN_EFACTOR, Math.min(2.6, newEfactor));
 
     // Interval hesaplama
     if (quality < 3) {
@@ -109,42 +109,35 @@ export class SpacedRepetitionService {
       hard: 1
     };
 
-    return Math.min(5, timeQuality + difficultyBonus[difficulty]);
+    return timeQuality + difficultyBonus[difficulty];
   }
 
   /**
    * Bugün tekrar edilmesi gereken kelimeleri filtrele
    * @param words kelime listesi
    */
-  static getWordsForToday(words: any[]): any[] {
+  static getWordsForTodayFromList(words: any[]): any[] {
     console.log('Getting words for today from:', words.length, 'total words');
-    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     const reviewWords = words.filter(word => {
       if (!word.nextReviewDate) {
         console.log('Word without nextReviewDate:', word.word);
-        // Eksik tarih varsa bugün tekrar et
         return true;
       }
-      
       try {
         const nextReview = new Date(word.nextReviewDate);
         if (isNaN(nextReview.getTime())) {
           console.log('Invalid nextReviewDate for word:', word.word);
-          // Geçersiz tarih varsa bugün tekrar et
           return true;
         }
         nextReview.setHours(0, 0, 0, 0);
         return nextReview <= today;
       } catch (error) {
         console.log('Error parsing nextReviewDate for word:', word.word, error);
-        // Hata varsa bugün tekrar et
         return true;
       }
     });
-    
     console.log('Found review words:', reviewWords.length);
     return reviewWords;
   }
@@ -156,40 +149,31 @@ export class SpacedRepetitionService {
    */
   static getNewWords(words: any[], dailyGoal: number): any[] {
     console.log('Getting new words from:', words.length, 'total words');
-    
-    // Yeni kelimeler: new, learning, reviewing durumundaki kelimeler
     const newWords = words.filter(word => 
       word.learningStatus === 'new' || 
       word.learningStatus === 'learning' || 
       word.learningStatus === 'reviewing'
     );
     console.log('Found new words:', newWords.length);
-    
     const limitedNewWords = newWords.slice(0, dailyGoal);
     console.log('Limited new words to daily goal:', limitedNewWords.length);
-    
     return limitedNewWords;
   }
 
   /**
-   * Kullanıcı için bugünkü kelimeleri al
+   * Kullanıcı için bugünkü kelimeleri al (userId ile)
    * @param userId kullanıcı ID
    */
-  static async getWordsForToday(userId: string): Promise<string[]> {
+  static async getWordsForTodayByUserId(userId: string): Promise<string[]> {
     try {
       const { FirebaseService } = await import('./firebaseService');
       const userWords = await FirebaseService.getUserWords(userId);
-      
       if (userWords.length === 0) {
         return [];
       }
-
-      const reviewWords = this.getWordsForToday(userWords);
+      const reviewWords = this.getWordsForTodayFromList(userWords);
       const newWords = this.getNewWords(userWords, 5); // Günlük 5 yeni kelime
-      
-      // Tekrar edilecek kelimeleri önce göster, sonra yeni kelimeleri
       const wordsForToday = [...reviewWords, ...newWords];
-      
       return wordsForToday.map(word => word.word);
     } catch (error) {
       console.error('Error getting words for today:', error);
@@ -206,38 +190,26 @@ export class SpacedRepetitionService {
   static async updateWordProgress(userId: string, word: string, knowledgeLevel: number): Promise<void> {
     try {
       const { FirebaseService } = await import('./firebaseService');
-      
-      // Kelimeyi bul
       const userWords = await FirebaseService.getUserWords(userId);
       const wordData = userWords.find(w => w.word === word);
-      
       if (!wordData) {
         console.warn('Word not found:', word);
         return;
       }
-
-      // Kalite puanını hesapla (1-5 seviye)
       const quality = Math.max(1, Math.min(5, knowledgeLevel));
-      
-      // Yeni değerleri hesapla
       const newValues = this.calculateNextReview(
         quality,
         wordData.interval || 1,
         wordData.efactor || 2.5,
         wordData.repetitions || 0
       );
-
-      // Kelimeyi güncelle
       await FirebaseService.updateWord(wordData.id, {
         ...newValues,
         learningStatus: quality >= 3 ? 'learning' : 'reviewing',
-        lastReviewed: new Date().toISOString()
+        lastReviewed: new Date()
       });
-
-      // Kullanıcı XP'sini güncelle
       const xpGained = quality * 10;
       await FirebaseService.updateUserXP(userId, xpGained);
-
     } catch (error) {
       console.error('Error updating word progress:', error);
       throw error;

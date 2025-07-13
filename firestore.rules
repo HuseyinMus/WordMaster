@@ -31,7 +31,22 @@ service cloud.firestore {
     // Genel kelime veritabanı - herkes okuyabilir ama sadece admin yazabilir
     match /wordDatabase/{wordId} {
       allow read: if true;
-      allow write: if false; // Sadece admin panelinden eklenebilir
+      allow write: if false;
+    }
+    
+    // Quiz sonuçları - kullanıcılar sadece kendi sonuçlarına erişebilir
+    match /quizResults/{resultId} {
+      allow read, write: if request.auth != null && (
+        resource == null || resource.data.userId == request.auth.uid
+      );
+    }
+    
+    // Kullanıcı ayarları - kullanıcılar sadece kendi ayarlarına erişebilir
+    match /userSettings/{settingId} {
+      allow read, write: if request.auth != null && (
+        settingId == request.auth.uid ||
+        resource == null || resource.data.userId == request.auth.uid
+      );
     }
   }
 } 

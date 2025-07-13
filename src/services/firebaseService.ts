@@ -199,10 +199,20 @@ export class FirebaseService {
 
   static async getUserWords(userId: string): Promise<Word[]> {
     console.log('Getting words for user:', userId);
+    console.log('userId type:', typeof userId);
+    console.log('userId length:', userId?.length);
 
-    // userId kontrolü
-    if (!userId || typeof userId !== 'string') {
-      throw new Error('Geçersiz kullanıcı ID: userId string olmalı ve boş olmamalı.');
+    // Detaylı userId kontrolü
+    if (!userId) {
+      throw new Error('Kullanıcı ID boş: userId parametresi gereklidir.');
+    }
+    
+    if (typeof userId !== 'string') {
+      throw new Error(`Geçersiz kullanıcı ID tipi: ${typeof userId}. userId string olmalıdır.`);
+    }
+    
+    if (userId.trim() === '') {
+      throw new Error('Kullanıcı ID boş string: userId boş olamaz.');
     }
 
     // Çok uzun userId'yi hashle (npm paketi yüklemeden basit bir hash)
@@ -210,7 +220,69 @@ export class FirebaseService {
     if (userId.length > 100) {
       // Basit hash: ilk 50 + son 50 + ters çevir
       safeUserId = (userId.slice(0, 50) + userId.slice(-50)).split('').reverse().join('');
+      console.log('userId çok uzun, hash uygulandı:', safeUserId);
     }
+
+    try {
+      const wordsRef = collection(db, 'words');
+      const q = query(
+        wordsRef,
+        where('userId', '==', safeUserId)
+      );
+      const querySnapshot = await getDocs(q);
+
+      const words = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Geçersiz tarihleri düzelt
+        try {
+          if (data.nextReviewDate) {
+            const nextReview = new Date(data.nextReviewDate);
+            if (isNaN(nextReview.getTime())) {
+              console.warn('Fixing invalid nextReviewDate for word:', data.word);
+              const now = new Date();
+              now.setDate(now.getDate() + 1);
+              data.nextReviewDate = now;
+            }
+          } else {
+            // nextReviewDate eksikse ekle
+            console.warn('Missing nextReviewDate for word:', data.word);
+            const now = new Date();
+            now.setDate(now.getDate() + 1);
+            data.nextReviewDate = now;
+          }
+        } catch (dateError) {
+          console.error('Date parsing error for word:', data.word, dateError);
+          const now = new Date();
+          now.setDate(now.getDate() + 1);
+          data.nextReviewDate = now;
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+          lastReviewed: data.lastReviewed ? new Date(data.lastReviewed) : new Date(),
+          nextReviewDate: data.nextReviewDate ? new Date(data.nextReviewDate) : new Date()
+        } as Word;
+      });
+
+      console.log(`Found ${words.length} words for user ${safeUserId}`);
+      return words;
+    } catch (error) {
+      console.error('Error getting user words:', error);
+      
+      const err = error as { code?: string; message?: string };
+      if (err.code === 'permission-denied') {
+        throw new Error('Firebase izin hatası. Kelimeler alınamadı. Güvenlik kurallarını kontrol edin.');
+      } else if (err.code === 'unavailable') {
+        throw new Error('Firebase servisi kullanılamıyor. İnternet bağlantınızı kontrol edin.');
+      } else if (err.code === 'unauthenticated') {
+        throw new Error('Kullanıcı kimlik doğrulaması başarısız. Lütfen tekrar giriş yapın.');
+      } else {
+        throw new Error(`Kelimeler alınırken hata: ${err.message || 'Bilinmeyen hata'}`);
+      }
+    }
+  }
 
     try {
       const wordsRef = collection(db, 'words');

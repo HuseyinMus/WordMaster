@@ -3,6 +3,8 @@
     "name": "WordMaster",
     "slug": "WordMaster",
     "version": "1.0.0",
+    "description": "Modern kelime öğrenme uygulaması. Spaced repetition algoritması ile kelimeleri kalıcı olarak öğrenin.",
+    "primaryColor": "#667eea",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -25,21 +27,15 @@
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
-      ]
+      ],
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "scheme": "wordmaster",
     "plugins": [
-      "expo-web-browser",
-      [
-        "react-native-google-mobile-ads",
-        {
-          "androidAppId": "ca-app-pub-6780266285395945~3908678547",
-          "iosAppId": "ca-app-pub-6780266285395945~3908678547"
-        }
-      ]
+      "expo-web-browser"
     ],
     "extra": {
       "eas": {

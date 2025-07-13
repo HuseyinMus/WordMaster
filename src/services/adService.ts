@@ -1,39 +1,11 @@
 import { Platform } from 'react-native';
 import { getAdUnitId, AD_DISPLAY_RULES } from '../config/admob';
 
-// Koşullu import - sadece mobil platformlarda
-let BannerAd: any = null;
-let BannerAdSize: any = null;
-let TestIds: any = null;
-let InterstitialAd: any = null;
-let AdEventType: any = null;
-let RewardedAd: any = null;
-let RewardedAdEventType: any = null;
-let NativeAdvancedAd: any = null;
-let NativeAdvancedAdEventType: any = null;
-
-if (Platform.OS !== 'web') {
-  try {
-    const mobileAds = require('react-native-google-mobile-ads');
-    BannerAd = mobileAds.BannerAd;
-    BannerAdSize = mobileAds.BannerAdSize;
-    TestIds = mobileAds.TestIds;
-    InterstitialAd = mobileAds.InterstitialAd;
-    AdEventType = mobileAds.AdEventType;
-    RewardedAd = mobileAds.RewardedAd;
-    RewardedAdEventType = mobileAds.RewardedAdEventType;
-    NativeAdvancedAd = mobileAds.NativeAdvancedAd;
-    NativeAdvancedAdEventType = mobileAds.NativeAdvancedAdEventType;
-  } catch (error) {
-    console.log('AdMob not available:', error);
-  }
-}
-
 class AdService {
   private static instance: AdService;
-  private interstitialAd: InterstitialAd | null = null;
-  private rewardedAd: RewardedAd | null = null;
-  private nativeAd: NativeAdvancedAd | null = null;
+  private interstitialAd: any = null;
+  private rewardedAd: any = null;
+  private nativeAd: any = null;
   private wordCount: number = 0;
   private quizCount: number = 0;
   private isTestMode: boolean = false; // Production modu - gerçek reklamlar
@@ -68,120 +40,91 @@ class AdService {
 
   // Interstitial Reklam İşlemleri
   private loadInterstitialAd() {
-    if (!InterstitialAd || !AdEventType) {
-      console.log('InterstitialAd not available');
-      return;
-    }
-
     const adUnitId = getAdUnitId('INTERSTITIAL', this.isTestMode);
-    this.interstitialAd = InterstitialAd.createForAdRequest(adUnitId);
+    // AdMobInterstitial.setAdUnitID(adUnitId); // Placeholder
+    
+    // AdMobInterstitial.addEventListener('interstitialDidLoad', () => { // Placeholder
+    //   console.log('Interstitial ad loaded');
+    // });
 
-    this.interstitialAd.addAdEventListener(AdEventType.LOADED, () => {
-      console.log('Interstitial ad loaded');
-    });
+    // AdMobInterstitial.addEventListener('interstitialDidFailToLoad', (error) => { // Placeholder
+    //   console.error('Interstitial ad error:', error);
+    // });
 
-    this.interstitialAd.addAdEventListener(AdEventType.ERROR, (error) => {
-      console.error('Interstitial ad error:', error);
-    });
+    // AdMobInterstitial.addEventListener('interstitialDidClose', () => { // Placeholder
+    //   console.log('Interstitial ad closed');
+    //   // Reklam kapandıktan sonra yeni reklam yükle
+    //   this.loadInterstitialAd();
+    // });
 
-    this.interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
-      console.log('Interstitial ad closed');
-      // Reklam kapandıktan sonra yeni reklam yükle
-      this.loadInterstitialAd();
-    });
-
-    this.interstitialAd.load();
+    // AdMobInterstitial.requestAdAsync(); // Placeholder
   }
 
-  public showInterstitialAd(): Promise<boolean> {
-    return new Promise((resolve) => {
-      if (!this.interstitialAd) {
-        console.log('Interstitial ad not ready');
-        resolve(false);
-        return;
-      }
+  public async showInterstitialAd(): Promise<boolean> {
+    try {
+      // const isLoaded = await AdMobInterstitial.getIsLoadedAsync(); // Placeholder
+      // if (!isLoaded) {
+      //   console.log('Interstitial ad not ready');
+      //   return false;
+      // }
 
-      this.interstitialAd.addAdEventListener(AdEventType.CLOSED, () => {
-        resolve(true);
-      }, { once: true });
-
-      this.interstitialAd.show();
-    });
+      // await AdMobInterstitial.showAdAsync(); // Placeholder
+      return false; // Placeholder
+    } catch (error) {
+      console.error('Error showing interstitial ad:', error);
+      return false;
+    }
   }
 
   // Rewarded Reklam İşlemleri
   private loadRewardedAd() {
-    if (!RewardedAd || !RewardedAdEventType) {
-      console.log('RewardedAd not available');
-      return;
-    }
-
     const adUnitId = getAdUnitId('REWARDED', this.isTestMode);
-    this.rewardedAd = RewardedAd.createForAdRequest(adUnitId);
+    // AdMobRewarded.setAdUnitID(adUnitId); // Placeholder
+    
+    // AdMobRewarded.addEventListener('rewardedVideoUserDidEarnReward', () => { // Placeholder
+    //   console.log('User earned reward');
+    // });
 
-    this.rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
-      console.log('Rewarded ad loaded');
-    });
+    // AdMobRewarded.addEventListener('rewardedVideoDidLoad', () => { // Placeholder
+    //   console.log('Rewarded ad loaded');
+    // });
 
-    this.rewardedAd.addAdEventListener(RewardedAdEventType.ERROR, (error) => {
-      console.error('Rewarded ad error:', error);
-    });
+    // AdMobRewarded.addEventListener('rewardedVideoDidFailToLoad', (error) => { // Placeholder
+    //   console.error('Rewarded ad error:', error);
+    // });
 
-    this.rewardedAd.addAdEventListener(RewardedAdEventType.CLOSED, () => {
-      console.log('Rewarded ad closed');
-      // Reklam kapandıktan sonra yeni reklam yükle
-      this.loadRewardedAd();
-    });
+    // AdMobRewarded.addEventListener('rewardedVideoDidClose', () => { // Placeholder
+    //   console.log('Rewarded ad closed');
+    //   // Reklam kapandıktan sonra yeni reklam yükle
+    //   this.loadRewardedAd();
+    // });
 
-    this.rewardedAd.load();
+    // AdMobRewarded.requestAdAsync(); // Placeholder
   }
 
-  public showRewardedAd(): Promise<{ rewarded: boolean; type?: string }> {
-    return new Promise((resolve) => {
-      if (!this.rewardedAd) {
-        console.log('Rewarded ad not ready');
-        resolve({ rewarded: false });
-        return;
-      }
+  public async showRewardedAd(): Promise<{ rewarded: boolean; type?: string }> {
+    try {
+      // const isLoaded = await AdMobRewarded.getIsLoadedAsync(); // Placeholder
+      // if (!isLoaded) {
+      //   console.log('Rewarded ad not ready');
+      //   return { rewarded: false };
+      // }
 
-      let rewardEarned = false;
-
-      this.rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
-        console.log('User earned reward:', reward);
-        rewardEarned = true;
-      }, { once: true });
-
-      this.rewardedAd.addAdEventListener(RewardedAdEventType.CLOSED, () => {
-        resolve({ rewarded: rewardEarned });
-      }, { once: true });
-
-      this.rewardedAd.show();
-    });
-  }
-
-  // Native Advanced Reklam İşlemleri
-  private loadNativeAd() {
-    if (!NativeAdvancedAd || !NativeAdvancedAdEventType) {
-      console.log('NativeAdvancedAd not available');
-      return;
+      // await AdMobRewarded.showAdAsync(); // Placeholder
+      return { rewarded: false }; // Placeholder
+    } catch (error) {
+      console.error('Error showing rewarded ad:', error);
+      return { rewarded: false };
     }
+  }
 
-    const adUnitId = getAdUnitId('NATIVE_ADVANCED', this.isTestMode);
-    this.nativeAd = NativeAdvancedAd.createForAdRequest(adUnitId);
-
-    this.nativeAd.addAdEventListener(NativeAdvancedAdEventType.LOADED, () => {
-      console.log('Native ad loaded');
-    });
-
-    this.nativeAd.addAdEventListener(NativeAdvancedAdEventType.ERROR, (error) => {
-      console.error('Native ad error:', error);
-    });
-
-    this.nativeAd.load();
+  // Native Advanced Reklam İşlemleri - Expo'da desteklenmiyor
+  private loadNativeAd() {
+    console.log('Native ads not supported in Expo managed workflow');
   }
 
   public getNativeAd() {
-    return this.nativeAd;
+    return null;
   }
 
   // Kelime öğrenme sayacı

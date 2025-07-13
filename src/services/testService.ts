@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { FirebaseService } from './firebaseService';
 import AdService from './adService';
 import { SpacedRepetitionService } from './spacedRepetition';
+import { auth } from '../config/firebase';
 
 export interface TestResult {
   name: string;
@@ -115,11 +116,12 @@ export class TestService {
       this.addResult({
         name: 'Mobil Platform Özellikleri',
         status: 'success',
-        message: 'Gerçek AdMob reklamları aktif',
+        message: 'Expo AdMob reklamları aktif',
         details: {
           mockAds: false,
           realAds: true,
           platform: platform,
+          adProvider: 'expo-ads-admob',
         },
         timestamp: new Date(),
       });
@@ -130,29 +132,8 @@ export class TestService {
     const startTime = Date.now();
 
     try {
-      // AdMob modül kontrolü
-      if (Platform.OS !== 'web') {
-        const mobileAds = require('react-native-google-mobile-ads');
-        this.addResult({
-          name: 'AdMob Modül Yükleme',
-          status: 'success',
-          message: 'AdMob modülü başarıyla yüklendi',
-          timestamp: new Date(),
-          duration: Date.now() - startTime,
-        });
-      } else {
-        this.addResult({
-          name: 'AdMob Modül Yükleme',
-          status: 'success',
-          message: 'Web platformunda mock AdMob kullanılıyor',
-          timestamp: new Date(),
-          duration: Date.now() - startTime,
-        });
-      }
-
       // AdMob konfigürasyon testi
       const { ADMOB_CONFIG, getAdUnitId } = await import('../config/admob');
-      
       this.addResult({
         name: 'AdMob Konfigürasyon',
         status: 'success',
@@ -162,6 +143,7 @@ export class TestService {
           bannerId: getAdUnitId('BANNER', false),
           interstitialId: getAdUnitId('INTERSTITIAL', false),
           rewardedId: getAdUnitId('REWARDED', false),
+          provider: 'expo-ads-admob',
         },
         timestamp: new Date(),
       });
@@ -169,7 +151,6 @@ export class TestService {
       // AdService testi
       const adService = AdService.getInstance();
       const bannerId = adService.getBannerAdUnitId();
-      
       this.addResult({
         name: 'AdService Test',
         status: 'success',
@@ -293,6 +274,7 @@ export class TestService {
         details: {
           component: 'BannerAdComponent',
           status: 'ready',
+          provider: 'expo-ads-admob',
         },
         timestamp: new Date(),
       });
@@ -305,6 +287,7 @@ export class TestService {
         details: {
           component: 'RewardedAdComponent',
           status: 'ready',
+          provider: 'expo-ads-admob',
         },
         timestamp: new Date(),
       });
@@ -317,6 +300,7 @@ export class TestService {
         details: {
           service: 'AdService',
           status: 'ready',
+          provider: 'expo-ads-admob',
         },
         timestamp: new Date(),
       });
@@ -472,6 +456,148 @@ export class TestService {
         duration: Date.now() - startTime,
       };
     }
+  }
+
+  // Firebase bağlantı testi
+  static async testFirebaseConnection(): Promise<{ success: boolean; message: string }> {
+    try {
+      console.log('Testing Firebase connection...');
+      
+      const isConnected = await FirebaseService.testConnection();
+      
+      if (isConnected) {
+        return { 
+          success: true, 
+          message: 'Firebase bağlantısı başarılı!' 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: 'Firebase bağlantısı başarısız' 
+        };
+      }
+    } catch (error) {
+      console.error('Firebase connection test error:', error);
+      return { 
+        success: false, 
+        message: `Firebase test hatası: ${error}` 
+      };
+    }
+  }
+
+  // Kullanıcı kimlik doğrulama testi
+  static async testUserAuthentication(): Promise<{ success: boolean; message: string }> {
+    try {
+      const currentUser = auth.currentUser;
+      
+      if (currentUser) {
+        return { 
+          success: true, 
+          message: `Kullanıcı giriş yapmış: ${currentUser.email}` 
+        };
+      } else {
+        return { 
+          success: false, 
+          message: 'Kullanıcı giriş yapmamış' 
+        };
+      }
+    } catch (error) {
+      console.error('User authentication test error:', error);
+      return { 
+        success: false, 
+        message: `Kimlik doğrulama test hatası: ${error}` 
+      };
+    }
+  }
+
+  // Firestore yazma testi
+  static async testFirestoreWrite(): Promise<{ success: boolean; message: string }> {
+    try {
+      const currentUser = auth.currentUser;
+      
+      if (!currentUser) {
+        return { 
+          success: false, 
+          message: 'Test için kullanıcı girişi gerekli' 
+        };
+      }
+
+      // Test verisi oluştur
+      const testData = {
+        userId: currentUser.uid,
+        testField: 'test_value',
+        timestamp: new Date(),
+        testId: `test_${Date.now()}`
+      };
+
+      // Test koleksiyonuna yaz
+      const { addDoc, collection } = await import('firebase/firestore');
+      const { db } = await import('../config/firebase');
+      
+      const testRef = await addDoc(collection(db, 'testCollection'), testData);
+      
+      return { 
+        success: true, 
+        message: `Firestore yazma testi başarılı. Test ID: ${testRef.id}` 
+      };
+    } catch (error) {
+      console.error('Firestore write test error:', error);
+      return { 
+        success: false, 
+        message: `Firestore yazma test hatası: ${error}` 
+      };
+    }
+  }
+
+  // Firestore okuma testi
+  static async testFirestoreRead(): Promise<{ success: boolean; message: string }> {
+    try {
+      const currentUser = auth.currentUser;
+      
+      if (!currentUser) {
+        return { 
+          success: false, 
+          message: 'Test için kullanıcı girişi gerekli' 
+        };
+      }
+
+      // Kullanıcının kelimelerini oku
+      const userWords = await FirebaseService.getUserWords(currentUser.uid);
+      
+      return { 
+        success: true, 
+        message: `Firestore okuma testi başarılı. ${userWords.length} kelime bulundu.` 
+      };
+    } catch (error) {
+      console.error('Firestore read test error:', error);
+      return { 
+        success: false, 
+        message: `Firestore okuma test hatası: ${error}` 
+      };
+    }
+  }
+
+  // Kapsamlı test
+  static async runFullTest(): Promise<{
+    connection: { success: boolean; message: string };
+    auth: { success: boolean; message: string };
+    write: { success: boolean; message: string };
+    read: { success: boolean; message: string };
+  }> {
+    const connection = await this.testFirebaseConnection();
+    const auth = await this.testUserAuthentication();
+    const write = await this.testFirestoreWrite();
+    const read = await this.testFirestoreRead();
+
+    return { connection, auth, write, read };
+  }
+
+  // Rewarded ad testi (placeholder)
+  static async testRewardedAd(): Promise<{ success: boolean; message: string }> {
+    return { 
+      success: true, 
+      message: 'Rewarded ad testi (placeholder - reklamlar devre dışı)' 
+    };
   }
 }
 

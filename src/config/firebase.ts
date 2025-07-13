@@ -1,9 +1,8 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-// import { getReactNativePersistence } from 'firebase/auth/react-native';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
 // Firebase konfigürasyonu
 const firebaseConfig = {
@@ -21,15 +20,18 @@ const app = initializeApp(firebaseConfig);
 
 // Auth servisini platforma göre optimize et
 let auth;
-if (typeof navigator !== 'undefined' && navigator.product === 'ReactNative') {
-  // Mobil ortam (React Native)
-  // const { getReactNativePersistence } = require('firebase/auth/react-native');
-  // auth = initializeAuth(app, {
-  //   persistence: getReactNativePersistence(AsyncStorage)
-  // });
-  auth = getAuth(app);
-} else {
-  // Web ve test ortamı
+try {
+  if (Platform.OS !== 'web') {
+    // Mobil ortam (React Native) - persistence ile
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage)
+    });
+  } else {
+    // Web ortamı
+    auth = getAuth(app);
+  }
+} catch (error) {
+  console.warn('Auth initialization error, using default:', error);
   auth = getAuth(app);
 }
 

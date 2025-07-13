@@ -1,31 +1,31 @@
 {
   "total": 37,
-  "passed": 30,
-  "failed": 5,
-  "warnings": 2,
+  "passed": 33,
+  "failed": 3,
+  "warnings": 1,
   "details": [
     {
       "name": "Dependency: react-native-google-mobile-ads",
-      "status": "success",
-      "message": "Versiyon: ^15.4.0",
+      "status": "error",
+      "message": "Eksik",
       "details": null
     },
     {
       "name": "Dependency: @react-native-firebase/app",
-      "status": "error",
-      "message": "Eksik",
+      "status": "success",
+      "message": "Versiyon: ^22.4.0",
       "details": null
     },
     {
       "name": "Dependency: @react-native-firebase/firestore",
-      "status": "error",
-      "message": "Eksik",
+      "status": "success",
+      "message": "Versiyon: ^22.4.0",
       "details": null
     },
     {
       "name": "Dependency: @react-native-firebase/auth",
-      "status": "error",
-      "message": "Eksik",
+      "status": "success",
+      "message": "Versiyon: ^22.4.0",
       "details": null
     },
     {
@@ -180,8 +180,8 @@
     },
     {
       "name": "Include Paths",
-      "status": "warning",
-      "message": "Include paths eksik",
+      "status": "success",
+      "message": "3 include path tanımlı",
       "details": null
     },
     {
@@ -210,14 +210,14 @@
     },
     {
       "name": "Package: react-native-google-mobile-ads",
-      "status": "success",
-      "message": "Yüklü",
+      "status": "error",
+      "message": "Yüklü değil",
       "details": null
     },
     {
       "name": "Package: @react-native-firebase",
-      "status": "error",
-      "message": "Yüklü değil",
+      "status": "success",
+      "message": "Yüklü",
       "details": null
     },
     {

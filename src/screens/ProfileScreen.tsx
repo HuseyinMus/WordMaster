@@ -7,14 +7,16 @@ import {
   TextInput,
   Alert,
   ScrollView,
-  Switch,
-  SafeAreaView
+  SafeAreaView,
+  Dimensions
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseService } from '../services/firebaseService';
 import BannerAdComponent from '../components/BannerAdComponent';
 import RewardedAdComponent from '../components/RewardedAdComponent';
-import RewardedAdButton from '../components/RewardedAdButton';
+
+const { width } = Dimensions.get('window');
 
 const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const { user, updateUserProfile, signOut } = useAuth();
@@ -34,15 +36,15 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         dailyGoal
       });
       setIsEditing(false);
-      Alert.alert('✅ Başarılı', 'Profil bilgileri güncellendi');
+      Alert.alert('Başarılı', 'Profil bilgileri güncellendi');
     } catch (error: any) {
-      Alert.alert('❌ Hata', error.message);
+      Alert.alert('Hata', error.message);
     }
   };
 
   const handleSignOut = () => {
     Alert.alert(
-      '🚪 Çıkış Yap',
+      'Çıkış Yap',
       'Hesabınızdan çıkış yapmak istediğinizden emin misiniz?',
       [
         { text: 'İptal', style: 'cancel' },
@@ -52,11 +54,14 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const handleAddInitialWords = async () => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      console.warn('ProfileScreen: user veya user.uid yok');
+      return;
+    }
 
     Alert.alert(
-      '📚 Temel Kelimeler Ekle',
-      'Temel kelime setini eklemek istediğinizden emin misiniz? Bu işlem birkaç saniye sürebilir.',
+      'Temel Kelimeler Ekle',
+      'Temel kelime setini eklemek istediğinizden emin misiniz?',
       [
         { text: 'İptal', style: 'cancel' },
         { 
@@ -65,9 +70,8 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             try {
               console.log('Starting to add sample words for user:', user.uid);
               
-              // Loading mesajı göster
               Alert.alert(
-                '⏳ Kelimeler Ekleniyor',
+                'Kelimeler Ekleniyor',
                 'Lütfen bekleyin...',
                 [],
                 { cancelable: false }
@@ -78,11 +82,11 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               console.log('Sample words added successfully');
               
               Alert.alert(
-                '🎉 Başarılı!', 
-                'Temel kelimeler başarıyla eklendi! Şimdi öğrenmeye başlayabilirsiniz.',
+                'Başarılı!', 
+                'Temel kelimeler başarıyla eklendi!',
                 [
                   {
-                    text: '📖 Öğrenmeye Başla',
+                    text: 'Öğrenmeye Başla',
                     onPress: () => navigation.navigate('Learning')
                   },
                   {
@@ -94,11 +98,11 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             } catch (error) {
               console.error('Error adding sample words:', error);
               Alert.alert(
-                '❌ Hata', 
+                'Hata', 
                 `Kelimeler eklenirken bir hata oluştu: ${error.message}`,
                 [
                   {
-                    text: '🔄 Tekrar Dene',
+                    text: 'Tekrar Dene',
                     onPress: () => handleAddInitialWords()
                   },
                   {
@@ -114,91 +118,18 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     );
   };
 
-  const handleTestFirebase = async () => {
-    try {
-      const isConnected = await FirebaseService.testConnection();
-      if (isConnected) {
-        Alert.alert('✅ Başarılı', 'Firebase bağlantısı çalışıyor!');
-      } else {
-        Alert.alert('❌ Hata', 'Firebase bağlantısında sorun var. Güvenlik kurallarını kontrol edin.');
-      }
-    } catch (error) {
-      Alert.alert('❌ Hata', `Firebase test hatası: ${error.message}`);
-    }
-  };
-
-  const handleAddTOEFLWords = async () => {
-    if (!user) return;
-
-    Alert.alert(
-      '📚 TOEFL Kelimeleri Ekle',
-      'TOEFL kelime setini eklemek istediğinizden emin misiniz? Bu set kolay, orta ve zor seviye kelimeler içerir.',
-      [
-        { text: 'İptal', style: 'cancel' },
-        { 
-          text: 'Ekle', 
-          onPress: async () => {
-            try {
-              console.log('Starting to add TOEFL words for user:', user.uid);
-              
-              // Loading mesajı göster
-              Alert.alert(
-                '⏳ TOEFL Kelimeleri Ekleniyor',
-                'Lütfen bekleyin...',
-                [],
-                { cancelable: false }
-              );
-              
-              await FirebaseService.addTOEFLWords(user.uid);
-              
-              console.log('TOEFL words added successfully');
-              
-              Alert.alert(
-                '🎉 Başarılı!', 
-                'TOEFL kelimeleri başarıyla eklendi! Şimdi TOEFL kelimelerini öğrenmeye başlayabilirsiniz.',
-                [
-                  {
-                    text: '📖 Öğrenmeye Başla',
-                    onPress: () => navigation.navigate('Learning')
-                  },
-                  {
-                    text: 'Tamam',
-                    style: 'default'
-                  }
-                ]
-              );
-            } catch (error) {
-              console.error('Error adding TOEFL words:', error);
-              Alert.alert(
-                '❌ Hata', 
-                `TOEFL kelimeleri eklenirken bir hata oluştu: ${error.message}`,
-                [
-                  {
-                    text: '🔄 Tekrar Dene',
-                    onPress: () => handleAddTOEFLWords()
-                  },
-                  {
-                    text: 'İptal',
-                    style: 'cancel'
-                  }
-                ]
-              );
-            }
-          }
-        }
-      ]
-    );
-  };
-
   const handleRewardEarned = async (reward: { type: string; amount: number }) => {
+    if (!user?.uid) {
+      console.warn('ProfileScreen: user.uid yok, reward güncellenemedi');
+      return;
+    }
+    
     try {
-      // Kullanıcının XP'sini güncelle
       await FirebaseService.updateUserXP(user.uid, reward.amount);
       
-      // Kullanıcı bilgilerini yenile
       const updatedUser = await FirebaseService.getUser(user.uid);
       if (updatedUser) {
-        setUser(updatedUser);
+        // setUser fonksiyonu AuthContext'te tanımlı değil, bu satırı kaldırıyoruz
       }
       
       console.log(`Reward earned: ${reward.amount} ${reward.type}`);
@@ -220,38 +151,65 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        {/* Header */}
-        <View style={styles.header}>
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.header}>
+        <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>Profil</Text>
+          <View style={styles.profileInfo}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user.displayName?.charAt(0).toUpperCase() || 'U'}
+              </Text>
+            </View>
+            <Text style={styles.userName}>{user.displayName}</Text>
+            <Text style={styles.userEmail}>{user.email}</Text>
+          </View>
+        </View>
+      </LinearGradient>
+
+      <ScrollView style={styles.container}>
+        {/* İstatistikler */}
+        <View style={styles.statsSection}>
+          <View style={styles.statsGrid}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{user.level}</Text>
+              <Text style={styles.statLabel}>Seviye</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{user.xp}</Text>
+              <Text style={styles.statLabel}>XP</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{user.streak}</Text>
+              <Text style={styles.statLabel}>Gün</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNumber}>{user.totalWordsLearned}</Text>
+              <Text style={styles.statLabel}>Kelime</Text>
+            </View>
+          </View>
         </View>
 
-        {/* Profil Bilgileri */}
+        {/* Profil Düzenleme */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📋 Kişisel Bilgiler</Text>
+          <Text style={styles.sectionTitle}>Profil Bilgileri</Text>
           
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>👤 Ad Soyad:</Text>
+          <View style={styles.card}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Ad Soyad</Text>
               {isEditing ? (
                 <TextInput
-                  style={styles.editInput}
+                  style={styles.input}
                   value={displayName}
                   onChangeText={setDisplayName}
                   placeholder="Ad soyad girin"
                 />
               ) : (
-                <Text style={styles.infoValue}>{user.displayName}</Text>
+                <Text style={styles.inputValue}>{user.displayName}</Text>
               )}
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>📧 E-posta:</Text>
-              <Text style={styles.infoValue}>{user.email}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>🎯 Günlük Hedef:</Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Günlük Hedef</Text>
               {isEditing ? (
                 <View style={styles.goalSelector}>
                   {[5, 8, 10].map((goal) => (
@@ -273,88 +231,51 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                   ))}
                 </View>
               ) : (
-                <Text style={styles.infoValue}>{user.dailyGoal} kelime</Text>
+                <Text style={styles.inputValue}>{user.dailyGoal} kelime</Text>
               )}
             </View>
-          </View>
 
-          {isEditing ? (
-            <View style={styles.editButtons}>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>💾 Kaydet</Text>
+            {isEditing ? (
+              <View style={styles.editButtons}>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                  <Text style={styles.saveButtonText}>Kaydet</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.cancelButton} 
+                  onPress={() => {
+                    setIsEditing(false);
+                    setDisplayName(user.displayName);
+                    setDailyGoal(user.dailyGoal);
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>İptal</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
+                <Text style={styles.editButtonText}>Düzenle</Text>
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.cancelButton} 
-                onPress={() => {
-                  setIsEditing(false);
-                  setDisplayName(user.displayName);
-                  setDailyGoal(user.dailyGoal);
-                }}
-              >
-                <Text style={styles.cancelButtonText}>❌ İptal</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
-              <Text style={styles.editButtonText}>✏️ Düzenle</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* İstatistikler */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📊 İstatistikler</Text>
-          
-          <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Text style={styles.statIcon}>⭐</Text>
-              <Text style={styles.statNumber}>{user.level}</Text>
-              <Text style={styles.statLabel}>Seviye</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statIcon}>🔥</Text>
-              <Text style={styles.statNumber}>{user.xp}</Text>
-              <Text style={styles.statLabel}>XP</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statIcon}>📅</Text>
-              <Text style={styles.statNumber}>{user.streak}</Text>
-              <Text style={styles.statLabel}>Gün</Text>
-            </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statIcon}>📚</Text>
-              <Text style={styles.statNumber}>{user.totalWordsLearned}</Text>
-              <Text style={styles.statLabel}>Kelime</Text>
-            </View>
+            )}
           </View>
         </View>
 
         {/* Hızlı İşlemler */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚡ Hızlı İşlemler</Text>
+          <Text style={styles.sectionTitle}>Hızlı İşlemler</Text>
           
-          <View style={styles.actionCard}>
+          <View style={styles.card}>
             <TouchableOpacity style={styles.actionButton} onPress={handleAddInitialWords}>
-              <Text style={styles.actionButtonText}>📚 Temel Kelimeler Ekle</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#28a745' }]} onPress={handleAddTOEFLWords}>
-              <Text style={styles.actionButtonText}>🎯 TOEFL Kelimeleri Ekle</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#007bff' }]} onPress={handleTestFirebase}>
-              <Text style={styles.actionButtonText}>🔧 Firebase Bağlantı Testi</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#ff6b6b' }]} onPress={() => navigation.navigate('AdTest')}>
-              <Text style={styles.actionButtonText}>🧪 Reklam Test Merkezi</Text>
+              <Text style={styles.actionButtonText}>Temel Kelimeler Ekle</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Ödüllü Reklamlar */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>🎁 Ödüllü Reklamlar</Text>
+          <Text style={styles.sectionTitle}>Bonus XP</Text>
           
           <RewardedAdComponent
-            title="🎁 Bonus XP Kazan"
+            title="Bonus XP Kazan"
             description="Reklam izleyerek 50 XP kazan!"
             rewardText="+50 XP"
             onRewardEarned={handleRewardEarned}
@@ -366,11 +287,11 @@ const ProfileScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
         {/* Hesap İşlemleri */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>⚙️ Hesap İşlemleri</Text>
+          <Text style={styles.sectionTitle}>Hesap</Text>
           
-          <View style={styles.actionCard}>
-            <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#dc3545' }]} onPress={handleSignOut}>
-              <Text style={styles.actionButtonText}>🚪 Çıkış Yap</Text>
+          <View style={styles.card}>
+            <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+              <Text style={styles.signOutButtonText}>Çıkış Yap</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -387,83 +308,136 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
+  header: {
+    paddingTop: 20,
+    paddingBottom: 30,
+    paddingHorizontal: 20,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 20,
+  },
+  profileInfo: {
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  avatarText: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 4,
+  },
+  userEmail: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  header: {
+  statsSection: {
+    padding: 20,
+    paddingTop: 30,
+  },
+  statsGrid: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+  },
+  statCard: {
+    backgroundColor: 'white',
+    borderRadius: 16,
     padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#667eea',
+    alignItems: 'center',
+    flex: 1,
+    marginHorizontal: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  headerTitle: {
-    fontSize: 24,
+  statNumber: {
+    fontSize: 28,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#667eea',
+    marginBottom: 4,
   },
-  backButton: {
-    fontSize: 16,
-    color: 'white',
-    fontWeight: '600',
+  statLabel: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   section: {
     padding: 20,
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: '#333',
     marginBottom: 15,
   },
-  infoCard: {
+  card: {
     backgroundColor: 'white',
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+  inputGroup: {
+    marginBottom: 20,
   },
-  infoLabel: {
-    fontSize: 16,
+  inputLabel: {
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 8,
   },
-  infoValue: {
-    fontSize: 16,
-    color: '#666',
-  },
-  editInput: {
+  input: {
     fontSize: 16,
     color: '#333',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 8,
-    minWidth: 120,
+    borderColor: '#e1e5e9',
+    borderRadius: 12,
+    padding: 12,
+    backgroundColor: '#f8f9fa',
+  },
+  inputValue: {
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 12,
   },
   goalSelector: {
     flexDirection: 'row',
     gap: 10,
   },
   goalButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#e1e5e9',
+    backgroundColor: '#f8f9fa',
   },
   goalButtonActive: {
     backgroundColor: '#667eea',
@@ -472,21 +446,22 @@ const styles = StyleSheet.create({
   goalButtonText: {
     fontSize: 14,
     color: '#666',
+    fontWeight: '500',
   },
   goalButtonTextActive: {
     color: 'white',
   },
   editButtons: {
     flexDirection: 'row',
-    gap: 10,
-    marginTop: 15,
+    gap: 12,
+    marginTop: 10,
   },
   editButton: {
     backgroundColor: '#667eea',
     borderRadius: 12,
     padding: 15,
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 10,
   },
   editButtonText: {
     color: 'white',
@@ -517,68 +492,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#667eea',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  statIcon: {
-    fontSize: 30,
-    marginBottom: 8,
-  },
-  actionCard: {
-    backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   actionButton: {
     backgroundColor: '#667eea',
     borderRadius: 12,
-    padding: 15,
+    padding: 16,
     alignItems: 'center',
-    marginBottom: 10,
-  },
-  secondaryButton: {
-    backgroundColor: '#28a745',
   },
   actionButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
   },
+  signOutButton: {
+    backgroundColor: '#dc3545',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  signOutButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
   bannerAd: {
     marginTop: 10,
-    marginBottom: 10,
-  },
-  rewardedButton: {
-    marginBottom: 10,
+    marginBottom: 20,
   },
   rewardedAd: {
     marginBottom: 10,

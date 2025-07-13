@@ -33,10 +33,15 @@ const LeaderboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, [selectedPeriod]);
 
   const loadLeaderboard = async () => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      console.warn('LeaderboardScreen: user veya user.uid yok');
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
     try {
+      console.log('LeaderboardScreen: Loading leaderboard for user:', user.uid);
       // Gerçek kullanıcı verilerini al
       const allUsers = await FirebaseService.getAllUsers();
       

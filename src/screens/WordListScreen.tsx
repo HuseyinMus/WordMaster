@@ -9,28 +9,34 @@ import {
   ActivityIndicator,
   TextInput,
   SafeAreaView,
+  Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../contexts/AuthContext';
 import { FirebaseService } from '../services/firebaseService';
 import { Word } from '../types';
 import BannerAdComponent from '../components/BannerAdComponent';
+
+const { width } = Dimensions.get('window');
 
 interface Category {
   id: string;
   name: string;
   icon: string;
   color: string;
+  gradient: string[];
   words: Word[];
+  description: string;
 }
 
-const WordListScreen = () => {
+const WordListScreen = ({ navigation }: { navigation: any }) => {
   const { user } = useAuth();
   const [words, setWords] = useState<Word[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState('');
+  const [viewMode, setViewMode] = useState<'categories' | 'words'>('categories');
 
   useEffect(() => {
     loadWords();
@@ -45,14 +51,78 @@ const WordListScreen = () => {
     
     // Kategorileri tanımla
     const categoryDefinitions = [
-      { id: 'toefl', name: 'TOEFL', icon: '🎓', color: '#667eea', keywords: ['academic', 'university', 'research', 'study'] },
-      { id: 'sat', name: 'SAT', icon: '📚', color: '#28a745', keywords: ['college', 'exam', 'test', 'education'] },
-      { id: 'ielts', name: 'IELTS', icon: '🌍', color: '#ffc107', keywords: ['international', 'english', 'language', 'test'] },
-      { id: 'business', name: 'İş İngilizcesi', icon: '💼', color: '#17a2b8', keywords: ['business', 'work', 'office', 'career'] },
-      { id: 'daily', name: 'Günlük Hayat', icon: '🏠', color: '#6f42c1', keywords: ['daily', 'home', 'family', 'life'] },
-      { id: 'travel', name: 'Seyahat', icon: '✈️', color: '#fd7e14', keywords: ['travel', 'trip', 'vacation', 'tourist'] },
-      { id: 'technology', name: 'Teknoloji', icon: '💻', color: '#e83e8c', keywords: ['technology', 'computer', 'software', 'digital'] },
-      { id: 'health', name: 'Sağlık', icon: '🏥', color: '#dc3545', keywords: ['health', 'medical', 'doctor', 'hospital'] },
+      { 
+        id: 'toefl', 
+        name: 'TOEFL', 
+        icon: '🎓', 
+        color: '#667eea',
+        gradient: ['#667eea', '#764ba2'],
+        description: 'Akademik İngilizce',
+        keywords: ['academic', 'university', 'research', 'study', 'education', 'college']
+      },
+      { 
+        id: 'sat', 
+        name: 'SAT', 
+        icon: '📚', 
+        color: '#28a745',
+        gradient: ['#28a745', '#20c997'],
+        description: 'Üniversite Sınavı',
+        keywords: ['college', 'exam', 'test', 'education', 'university']
+      },
+      { 
+        id: 'ielts', 
+        name: 'IELTS', 
+        icon: '🌍', 
+        color: '#ffc107',
+        gradient: ['#ffc107', '#fd7e14'],
+        description: 'Uluslararası İngilizce',
+        keywords: ['international', 'english', 'language', 'test', 'global']
+      },
+      { 
+        id: 'business', 
+        name: 'İş İngilizcesi', 
+        icon: '💼', 
+        color: '#17a2b8',
+        gradient: ['#17a2b8', '#6f42c1'],
+        description: 'Profesyonel İş Hayatı',
+        keywords: ['business', 'work', 'office', 'career', 'professional', 'company']
+      },
+      { 
+        id: 'daily', 
+        name: 'Günlük Hayat', 
+        icon: '🏠', 
+        color: '#6f42c1',
+        gradient: ['#6f42c1', '#e83e8c'],
+        description: 'Günlük Konuşma',
+        keywords: ['daily', 'home', 'family', 'life', 'personal', 'routine']
+      },
+      { 
+        id: 'travel', 
+        name: 'Seyahat', 
+        icon: '✈️', 
+        color: '#fd7e14',
+        gradient: ['#fd7e14', '#dc3545'],
+        description: 'Seyahat ve Turizm',
+        keywords: ['travel', 'trip', 'vacation', 'tourist', 'hotel', 'airport']
+      },
+      { 
+        id: 'technology', 
+        name: 'Teknoloji', 
+        icon: '💻', 
+        color: '#e83e8c',
+        gradient: ['#e83e8c', '#6f42c1'],
+        description: 'Teknoloji ve Dijital',
+        keywords: ['technology', 'computer', 'software', 'digital', 'internet', 'app']
+      },
+      { 
+        id: 'health', 
+        name: 'Sağlık', 
+        icon: '🏥', 
+        color: '#dc3545',
+        gradient: ['#dc3545', '#fd7e14'],
+        description: 'Sağlık ve Tıp',
+        keywords: ['health', 'medical', 'doctor', 'hospital', 'medicine', 'treatment']
+      },
     ];
 
     // Her kelimeyi kategorilere ayır
@@ -63,8 +133,8 @@ const WordListScreen = () => {
       for (const category of categoryDefinitions) {
         if (category.keywords.some(keyword => 
           word.word.toLowerCase().includes(keyword) || 
-          word.meaning.toLowerCase().includes(keyword) ||
-          word.example.toLowerCase().includes(keyword)
+          (word.meaning && word.meaning.toLowerCase().includes(keyword)) ||
+          (word.example && word.example.toLowerCase().includes(keyword))
         )) {
           if (!categoryMap.has(category.id)) {
             categoryMap.set(category.id, []);
@@ -91,6 +161,8 @@ const WordListScreen = () => {
         name: 'Tüm Kelimeler',
         icon: '📖',
         color: '#6c757d',
+        gradient: ['#6c757d', '#495057'],
+        description: 'Tüm kelimeleriniz',
         words: words
       },
       ...categoryDefinitions.map(cat => ({
@@ -98,6 +170,8 @@ const WordListScreen = () => {
         name: cat.name,
         icon: cat.icon,
         color: cat.color,
+        gradient: cat.gradient,
+        description: cat.description,
         words: categoryMap.get(cat.id) || []
       })),
       {
@@ -105,6 +179,8 @@ const WordListScreen = () => {
         name: 'Genel',
         icon: '📝',
         color: '#adb5bd',
+        gradient: ['#adb5bd', '#6c757d'],
+        description: 'Genel kelimeler',
         words: categoryMap.get('general') || []
       }
     ];
@@ -113,10 +189,15 @@ const WordListScreen = () => {
   };
 
   const loadWords = async () => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      console.warn('WordListScreen: user veya user.uid yok');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('WordListScreen: Loading words for user:', user.uid);
       const userWords = await FirebaseService.getUserWords(user.uid);
       console.log('WordList - Loaded words:', userWords.length);
       setWords(userWords);
@@ -139,21 +220,66 @@ const WordListScreen = () => {
       }
     }
     
-    // Zorluk seviyesi filtresi
-    if (selectedDifficulty !== 'all') {
-      filteredWords = filteredWords.filter(word => word.difficulty === selectedDifficulty);
-    }
-    
     // Arama filtresi
     if (searchText) {
       filteredWords = filteredWords.filter(word => 
         word.word.toLowerCase().includes(searchText.toLowerCase()) ||
-        word.meaning.toLowerCase().includes(searchText.toLowerCase())
+        (word.meaning && word.meaning.toLowerCase().includes(searchText.toLowerCase()))
       );
     }
     
     return filteredWords;
   };
+
+  const handleCategoryPress = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setViewMode('words');
+  };
+
+  const handleStartLearning = (categoryId: string) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    if (category && category.words.length > 0) {
+      // Bu kategoriyi öğrenme moduna geçir
+      navigation.navigate('Learning', { 
+        categoryId: categoryId,
+        words: category.words 
+      });
+    } else {
+      Alert.alert('Uyarı', 'Bu kategoride öğrenilecek kelime bulunmuyor.');
+    }
+  };
+
+  const renderCategory = ({ item }: { item: Category }) => (
+    <TouchableOpacity
+      style={styles.categoryCard}
+      onPress={() => handleCategoryPress(item.id)}
+    >
+      <LinearGradient
+        colors={item.gradient}
+        style={styles.categoryGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        <View style={styles.categoryContent}>
+          <Text style={styles.categoryIcon}>{item.icon}</Text>
+          <View style={styles.categoryInfo}>
+            <Text style={styles.categoryName}>{item.name}</Text>
+            <Text style={styles.categoryDescription}>{item.description}</Text>
+            <Text style={styles.categoryCount}>{item.words.length} kelime</Text>
+          </View>
+          
+          {item.words.length > 0 && (
+            <TouchableOpacity
+              style={styles.learnButton}
+              onPress={() => handleStartLearning(item.id)}
+            >
+              <Text style={styles.learnButtonText}>Öğren</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 
   const renderWord = ({ item }: { item: Word }) => (
     <View style={styles.wordCard}>
@@ -172,7 +298,9 @@ const WordListScreen = () => {
         </View>
       </View>
       
-      <Text style={styles.exampleText}>{item.example}</Text>
+      {item.example && (
+        <Text style={styles.exampleText}>{item.example}</Text>
+      )}
       
       <View style={styles.wordFooter}>
         <View style={[
@@ -188,23 +316,6 @@ const WordListScreen = () => {
         </Text>
       </View>
     </View>
-  );
-
-  const renderCategory = ({ item }: { item: Category }) => (
-    <TouchableOpacity
-      style={[
-        styles.categoryCard,
-        selectedCategory === item.id && styles.categoryCardActive,
-        { borderLeftColor: item.color }
-      ]}
-      onPress={() => setSelectedCategory(item.id)}
-    >
-      <Text style={styles.categoryIcon}>{item.icon}</Text>
-      <View style={styles.categoryInfo}>
-        <Text style={styles.categoryName}>{item.name}</Text>
-        <Text style={styles.categoryCount}>{item.words.length} kelime</Text>
-      </View>
-    </TouchableOpacity>
   );
 
   const getStatusColor = (status: string) => {
@@ -248,141 +359,104 @@ const WordListScreen = () => {
   if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#667eea" />
-          <Text style={styles.loadingText}>Kelimeler yükleniyor...</Text>
-        </View>
+        <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="white" />
+            <Text style={styles.loadingText}>Kelimeler yükleniyor...</Text>
+          </View>
+        </LinearGradient>
       </SafeAreaView>
     );
   }
 
   const currentWords = getCurrentWords();
+  const selectedCategoryData = categories.find(cat => cat.id === selectedCategory);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>📚 Kelime Kütüphanesi</Text>
-          <Text style={styles.subtitle}>
-            {currentWords.length} kelime bulundu
-          </Text>
+          <TouchableOpacity 
+            onPress={() => {
+              if (viewMode === 'words') {
+                setViewMode('categories');
+                setSelectedCategory('all');
+              } else {
+                navigation.goBack();
+              }
+            }} 
+            style={styles.backButton}
+          >
+            <Text style={styles.backButtonText}>
+              {viewMode === 'words' ? '← Kategoriler' : '← Geri'}
+            </Text>
+          </TouchableOpacity>
+          
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle}>
+              {viewMode === 'categories' ? 'Kelime Kategorileri' : selectedCategoryData?.name}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {viewMode === 'categories' 
+                ? `${words.length} toplam kelime` 
+                : `${currentWords.length} kelime bulundu`
+              }
+            </Text>
+          </View>
         </View>
 
-        {/* Arama */}
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="🔍 Kelime ara..."
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholderTextColor="#999"
-          />
-        </View>
+        {/* Arama - Sadece kelime görünümünde */}
+        {viewMode === 'words' && (
+          <View style={styles.searchContainer}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="🔍 Kelime ara..."
+              value={searchText}
+              onChangeText={setSearchText}
+              placeholderTextColor="#999"
+            />
+          </View>
+        )}
 
-        {/* Kategoriler */}
-        <View style={styles.categoriesContainer}>
-          <Text style={styles.categoriesTitle}>📂 Kategoriler</Text>
+        {/* İçerik */}
+        {viewMode === 'categories' ? (
+          // Kategori Görünümü
           <FlatList
             data={categories}
             renderItem={renderCategory}
             keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesList}
-          />
-        </View>
-
-        {/* Zorluk Seviyesi Filtreleri */}
-        <View style={styles.difficultyContainer}>
-          <Text style={styles.difficultyTitle}>🎯 Zorluk Seviyesi</Text>
-          <View style={styles.difficultyButtons}>
-            <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                selectedDifficulty === 'all' && styles.difficultyButtonActive
-              ]}
-              onPress={() => setSelectedDifficulty('all')}
-            >
-              <Text style={[
-                styles.difficultyButtonText,
-                selectedDifficulty === 'all' && styles.difficultyButtonTextActive
-              ]}>
-                Tümü
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                selectedDifficulty === 'easy' && styles.difficultyButtonActive,
-                { backgroundColor: '#28a745' }
-              ]}
-              onPress={() => setSelectedDifficulty('easy')}
-            >
-              <Text style={[
-                styles.difficultyButtonText,
-                selectedDifficulty === 'easy' && styles.difficultyButtonTextActive
-              ]}>
-                🟢 Kolay
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                selectedDifficulty === 'medium' && styles.difficultyButtonActive,
-                { backgroundColor: '#ffc107' }
-              ]}
-              onPress={() => setSelectedDifficulty('medium')}
-            >
-              <Text style={[
-                styles.difficultyButtonText,
-                selectedDifficulty === 'medium' && styles.difficultyButtonTextActive
-              ]}>
-                🟡 Orta
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.difficultyButton,
-                selectedDifficulty === 'hard' && styles.difficultyButtonActive,
-                { backgroundColor: '#dc3545' }
-              ]}
-              onPress={() => setSelectedDifficulty('hard')}
-            >
-              <Text style={[
-                styles.difficultyButtonText,
-                selectedDifficulty === 'hard' && styles.difficultyButtonTextActive
-              ]}>
-                🔴 Zor
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Kelime Listesi */}
-        {currentWords.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📝</Text>
-            <Text style={styles.emptyText}>
-              {words.length === 0 ? 'Henüz kelime eklenmemiş.' : 'Bu kategoride kelime bulunamadı.'}
-            </Text>
-            <Text style={styles.emptySubtext}>
-              {words.length === 0 ? 'Profil sayfasından kelime ekleyebilirsiniz.' : 'Farklı bir kategori seçin.'}
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            data={currentWords}
-            renderItem={renderWord}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContainer}
             showsVerticalScrollIndicator={false}
           />
+        ) : (
+          // Kelime Görünümü
+          <>
+            {currentWords.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📝</Text>
+                <Text style={styles.emptyText}>
+                  {words.length === 0 ? 'Henüz kelime eklenmemiş.' : 'Bu kategoride kelime bulunamadı.'}
+                </Text>
+                <Text style={styles.emptySubtext}>
+                  {words.length === 0 ? 'Profil sayfasından kelime ekleyebilirsiniz.' : 'Farklı bir kategori seçin.'}
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={currentWords}
+                renderItem={renderWord}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContainer}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </>
         )}
 
         {/* Banner Reklam */}
         <BannerAdComponent style={styles.bannerAd} />
-      </View>
+      </LinearGradient>
     </SafeAreaView>
   );
 };
@@ -390,162 +464,150 @@ const WordListScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#667eea',
   },
   container: {
     flex: 1,
-    padding: 20,
   },
   header: {
-    backgroundColor: 'white',
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 20,
     paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 5,
+  backButton: {
+    padding: 10,
+    marginRight: 15,
   },
-  subtitle: {
+  backButtonText: {
+    color: 'white',
     fontSize: 16,
-    color: '#666',
+    fontWeight: '600',
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 2,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   searchContainer: {
-    marginTop: 15,
+    paddingHorizontal: 20,
     marginBottom: 15,
   },
   searchInput: {
     backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 15,
     fontSize: 16,
     color: '#333',
-  },
-  categoriesContainer: {
-    marginBottom: 15,
-  },
-  categoriesTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   categoriesList: {
-    paddingVertical: 5,
-  },
-  difficultyContainer: {
-    marginBottom: 15,
-  },
-  difficultyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  difficultyButtons: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  difficultyButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    backgroundColor: '#f8f9fa',
-  },
-  difficultyButtonActive: {
-    borderColor: '#667eea',
-    backgroundColor: '#667eea',
-  },
-  difficultyButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  difficultyButtonTextActive: {
-    color: 'white',
+    padding: 20,
+    paddingBottom: 100,
   },
   categoryCard: {
+    marginBottom: 15,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  categoryGradient: {
+    borderRadius: 16,
+    padding: 20,
+  },
+  categoryContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 10,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  categoryCardActive: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#667eea',
   },
   categoryIcon: {
-    fontSize: 24,
-    marginRight: 10,
+    fontSize: 32,
+    marginRight: 15,
   },
   categoryInfo: {
     flex: 1,
   },
   categoryName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 4,
+  },
+  categoryDescription: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
+    color: 'rgba(255, 255, 255, 0.9)',
+    marginBottom: 4,
   },
   categoryCount: {
     fontSize: 12,
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  learnButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  learnButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
   },
   listContainer: {
-    paddingBottom: 20,
+    padding: 20,
+    paddingBottom: 100,
   },
   wordCard: {
     backgroundColor: 'white',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 10,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowRadius: 6,
+    elevation: 4,
   },
   wordHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
   wordInfo: {
     flex: 1,
+    marginRight: 10,
   },
   wordText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   meaningText: {
     fontSize: 14,
     color: '#666',
+    lineHeight: 20,
   },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   statusText: {
@@ -556,7 +618,9 @@ const styles = StyleSheet.create({
   exampleText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 10,
+    marginBottom: 12,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
   wordFooter: {
     flexDirection: 'row',
@@ -564,8 +628,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 12,
   },
   difficultyText: {
@@ -581,32 +645,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f8f9fa',
   },
   loadingText: {
-    marginTop: 10,
+    marginTop: 15,
     fontSize: 16,
-    color: '#666',
+    color: 'white',
+    fontWeight: '600',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 40,
   },
   emptyIcon: {
     fontSize: 60,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   emptyText: {
     fontSize: 18,
-    color: '#666',
+    color: 'white',
     textAlign: 'center',
     marginBottom: 10,
+    fontWeight: '600',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
   },
   bannerAd: {

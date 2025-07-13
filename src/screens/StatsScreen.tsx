@@ -30,10 +30,15 @@ const StatsScreen = ({ navigation }: { navigation: any }) => {
   }, []);
 
   const loadStats = async () => {
-    if (!user) return;
+    if (!user || !user.uid) {
+      console.warn('StatsScreen: user veya user.uid yok');
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('StatsScreen: Loading stats for user:', user.uid);
       const userStats = await getUserStats(user.uid);
       console.log('Stats - Loaded stats:', userStats);
       setStats(userStats);

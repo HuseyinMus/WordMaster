@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, Platform, StatusBar } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuth } from '../contexts/AuthContext';
 
 // Screens
@@ -19,43 +20,43 @@ import AdTestComponent from '../components/AdTestComponent';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+const tabBarOptions = {
+  tabBarActiveTintColor: '#3B82F6', // Modern mavi
+  tabBarInactiveTintColor: '#8E9BAE',
+  tabBarShowLabel: true,
+  tabBarStyle: {
+    backgroundColor: '#fff',
+    borderTopWidth: 0,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    height: Platform.OS === 'ios' ? 80 : 70,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+    paddingTop: 8,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    marginHorizontal: 0,
+  },
+  tabBarLabelStyle: {
+    fontSize: 13,
+    fontWeight: 'bold' as any,
+    marginBottom: 4,
+  },
+  headerShown: false,
+};
+
 const MainTabs = () => {
   return (
-    <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#667eea',
-        tabBarInactiveTintColor: '#999',
-        tabBarStyle: {
-          backgroundColor: 'white',
-          borderTopWidth: 1,
-          borderTopColor: '#e9ecef',
-          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
-          paddingTop: 10,
-          height: Platform.OS === 'ios' ? 90 : 70,
-          paddingHorizontal: 10,
-          // Android için sistem navigation bar'ı ile çakışmayı önle
-          ...(Platform.OS === 'android' && {
-            elevation: 8,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-          }),
-        },
-        headerShown: false,
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-        },
-      }}
-    >
+    <Tab.Navigator screenOptions={tabBarOptions}>
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
           tabBarLabel: 'Ana Sayfa',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: 20 }}>🏠</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name={focused ? 'home' : 'home-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -64,8 +65,8 @@ const MainTabs = () => {
         component={LearningScreen}
         options={{
           tabBarLabel: 'Öğren',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: 20 }}>📚</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name={focused ? 'book-open-variant' : 'book-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -74,8 +75,8 @@ const MainTabs = () => {
         component={WordListScreen}
         options={{
           tabBarLabel: 'Kelimeler',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: 20 }}>📝</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name={focused ? 'format-list-bulleted-square' : 'format-list-bulleted'} size={26} color={color} />
           ),
         }}
       />
@@ -84,8 +85,8 @@ const MainTabs = () => {
         component={ProfileScreen}
         options={{
           tabBarLabel: 'Profil',
-          tabBarIcon: ({ color, size }) => (
-            <Text style={{ color, fontSize: 20 }}>👤</Text>
+          tabBarIcon: ({ color, size, focused }) => (
+            <Icon name={focused ? 'account-circle' : 'account-circle-outline'} size={26} color={color} />
           ),
         }}
       />
@@ -102,18 +103,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        screenOptions={{ 
-          headerShown: false,
-          // Android için sistem navigation bar'ı ile çakışmayı önle
-          ...(Platform.OS === 'android' && {
-            headerStyle: {
-              elevation: 0,
-              shadowOpacity: 0,
-            },
-          }),
-        }}
-      >
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
           <>
             <Stack.Screen name="MainTabs" component={MainTabs} />
